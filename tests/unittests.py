@@ -92,11 +92,14 @@ class test_calc_posres_forces(unittest.TestCase):
         self.assertRaises(ValueError, force_analysis.calc_posres_forces, traj_coords, ref_coords, 10)
 
     def test_spring_constant_calculation(self):
-        traj_coords = np.zeros((2, 10, 1)) + 5   # all set to 5
+        traj_coords     = np.zeros((2, 10, 1)) + 5   # all set to 5
+        traj_coords_neg = np.zeros((2, 10, 1)) - 3
         ref_coords =  np.ones((1, 10, 1))         # all set to 1
-        forces = force_analysis.calc_posres_forces(traj_coords, ref_coords, 10)
+        forces     = force_analysis.calc_posres_forces(traj_coords,     ref_coords, 10)
+        forces_neg = force_analysis.calc_posres_forces(traj_coords_neg, ref_coords, 10)
         self.assertSequenceEqual(forces.shape, (2, 10, 1))
-        self.assertEqual(forces[0, 0, 0], 40)
+        self.assertEqual(forces[0, 0, 0],      40)
+        self.assertEqual(forces_neg[0, 0, 0], -40)
 
 
 if __name__ == '__main__':
