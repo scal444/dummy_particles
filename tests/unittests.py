@@ -77,6 +77,11 @@ class test_scale_box_coordinates(unittest.TestCase):
         scaled_coords = force_analysis.scale_box_coordinates(traj_xyz, traj_dims, ref_dims)
         self.assertTrue(all(scaled_coords[5, 0, :] == (45, 5, 5)))
 
+    def test_coordinate_frame_multiplication(self):
+        ref_xyz = np.ones((1, 10, 3))
+        mult_xyz = force_analysis.multiply_coordinate_frame(ref_xyz, 15)
+        self.assertSequenceEqual(mult_xyz.shape, (15, 10, 3))
+
 
 class test_calc_posres_forces(unittest.TestCase):
 
@@ -88,13 +93,13 @@ class test_calc_posres_forces(unittest.TestCase):
 
     def test_dimension_mismatch_error(self):
         traj_coords = np.zeros((10, 100, 3))
-        ref_coords  = np.zeros((1,  98, 3))
+        ref_coords  = np.zeros((10, 100, 2))
         self.assertRaises(ValueError, force_analysis.calc_posres_forces, traj_coords, ref_coords, 10)
 
     def test_spring_constant_calculation(self):
         traj_coords     = np.zeros((2, 10, 1)) + 5   # all set to 5
         traj_coords_neg = np.zeros((2, 10, 1)) - 3
-        ref_coords =  np.ones((1, 10, 1))         # all set to 1
+        ref_coords =  np.ones((2, 10, 1))         # all set to 1
         forces     = force_analysis.calc_posres_forces(traj_coords,     ref_coords, 10)
         forces_neg = force_analysis.calc_posres_forces(traj_coords_neg, ref_coords, 10)
         self.assertSequenceEqual(forces.shape, (2, 10, 1))

@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import file_io
 
 
+def multiply_coordinate_frame(ref_xyz, n_frames):
+    ''' Takes references coordinates and repeats them so that they have same dimensions as a trajectory xyz array'''
+    return np.repeat(ref_xyz, n_frames, axis=0)
+
+
 def scale_box_coordinates(traj_xyz, traj_dims, ref_dims):
     '''
         Scales a coordinate set in 3 dimensions according to changing box size. The scaling is by the fractional size
@@ -29,19 +34,18 @@ def scale_box_coordinates(traj_xyz, traj_dims, ref_dims):
     return traj_xyz * scale_factor[:, np.newaxis, :]
 
 
-def calc_posres_forces(traj_xyz, ref_xyz, spring_constant, scaling=False, traj_dims=None, ref_dims=None):
+def calc_posres_forces(traj_xyz, ref_xyz, spring_constant):
     '''
         Calculates the average force acting on a dummy particle kept in place using position restraints. This is done
-        by calculating the displacement of the bead from its equilibrium value. If scaling is on, accounts for changes
-        in the box dimensions, which are input as traj_dims and ref_dims.
+        by calculating the displacement of the bead from its equilibrium value and using the spring constant force
+        equation.
 
         Physics
-            F = -kX
-            E = (1/2) kX^2
+            F = -kX   (kX to keep a particle at a specific distance from reference)
 
         Parameters
-            -traj_xyz        - n_frames * n_particles * xyz array of coordinates
-            -ref_xyz         -            n_particles * xyz array of coordinates (for reference frame)
+            -traj_xyz        - n_frames * n_particles * xyz array of coordinates (actual coordinates)
+            -ref_xyz         - n_frames * n_particles * xyz array of coordinates (position restraint reference coords)
             -spring constant - force constant that keeps dummy particles in place. Gromacs units are k=kJ/(mol nm^2)
 
         Returns
@@ -54,16 +58,10 @@ def calc_posres_forces(traj_xyz, ref_xyz, spring_constant, scaling=False, traj_d
         raise ValueError("Dimension mismatch. traj_xyz and ref_xyz must be mdtraj format xyz arrays, of dimensions" +
                          "n_frames * n_particles * dims, even if there is only one frame/particle/dimension")
 
-    if not trajshape[1:] == refshape[1:]:
+    if  trajshape != refshape:
         raise ValueError("Dimension mismatch between traj_xyz and ref_xyz - {} to {}".format(trajshape, refshape ))
 
-    # duplicate reference coordinates for all frames, scale frame by frame if necessary
-    comp_coords = np.repeat(ref_xyz, traj_xyz.shape[0], axis=0)
-    if scaling:
-        comp_coords = scale_box_coordinates(ref_xyz, traj_dims, ref_dims)
-
-    dists = traj_xyz - comp_coords   # force will be along opposite of these vectors
-
+    dists = traj_xyz - ref_xyz
     return  spring_constant * dists
 
 
