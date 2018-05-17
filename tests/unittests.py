@@ -70,12 +70,12 @@ class test_scale_box_coordinates(unittest.TestCase):
         self.assertRaises(ValueError, force_analysis.scale_box_coordinates, bad_xyz,  good_dims, good_ref)
 
     def test_scaling(self):
-        traj_xyz  = np.ones((10, 5, 3)) + (14, 9, 4)
-        traj_dims = np.ones((10, 3)) + 2
-        ref_dims  = np.array((1, 2, 3))
-        # dims are 3X, 1.5X and 1X reference. So should be 45, 15, 5
+        traj_xyz  = np.zeros((10, 5, 3)) + (15, 10, 5)
+        traj_dims = np.zeros((10, 3)) + 3
+        ref_dims  = np.array((1, 6, 3))
+        # dims are 3X, 0.5X and 1X reference. So should be 15 * 3, 10 * 0.5, 5 * 1
         scaled_coords = force_analysis.scale_box_coordinates(traj_xyz, traj_dims, ref_dims)
-        self.assertTrue(all(scaled_coords[5, 0, :] == (45, 15, 5)))
+        self.assertTrue(all(scaled_coords[5, 0, :] == (45, 5, 5)))
 
 
 class test_calc_posres_forces(unittest.TestCase):
