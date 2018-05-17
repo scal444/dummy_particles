@@ -18,7 +18,7 @@ def load_xvg(file, comments=('#', '@'), dims=3, return_time_data=False):
 
     data = np.loadtxt(file, dtype=float, comments=comments)
     if (data.shape[1] - 1) % dims > 0:
-        print("Warning - dims * n_particles does not equal number of columns in xvg")
+        raise ValueError("(dims * n_particles) + 1 does not equal number of columns in xvg")
 
     return_data = data[:, 1:].reshape(data.shape[0], int((data.shape[1] - 1) / dims), dims)
     if return_time_data:
