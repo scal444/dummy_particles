@@ -55,11 +55,27 @@ class test_load_xvg(unittest.TestCase):
 # -------------------------------
 class test_scale_box_coordinates(unittest.TestCase):
 
-    def test_mismatch_error(self):
-        pass
+    def test_dims_mismatch_error(self):
+        traj_xyz = np.ones((10, 8, 3))
+        traj_dims = 100 + (np.random.rand(10, 3))
+        ref_dims = 100 + np.random.rand(2)
+        self.assertRaises(ValueError, force_analysis.scale_box_coordinates, traj_xyz, traj_dims, ref_dims)
+
+    def test_all_3D_error(self):
+        good_xyz,  bad_xyz  = np.ones((10, 5, 3)), np.ones((10, 5, 2))
+        good_dims, bad_dims = np.ones((10, 3)),    np.ones((10, 1))
+        good_ref,  bad_ref  = np.ones((3)),        np.ones((2))
+        self.assertRaises(ValueError, force_analysis.scale_box_coordinates, good_xyz, good_dims,  bad_ref)
+        self.assertRaises(ValueError, force_analysis.scale_box_coordinates, good_xyz,  bad_dims, good_ref)
+        self.assertRaises(ValueError, force_analysis.scale_box_coordinates, bad_xyz,  good_dims, good_ref)
 
     def test_scaling(self):
-        pass
+        traj_xyz  = np.ones((10, 5, 3)) + (14, 9, 4)
+        traj_dims = np.ones((10, 3)) + 2
+        ref_dims  = np.array((1, 2, 3))
+        # dims are 3X, 1.5X and 1X reference. So should be 45, 15, 5
+        scaled_coords = force_analysis.scale_box_coordinates(traj_xyz, traj_dims, ref_dims)
+        self.assertTrue(all(scaled_coords[5, 0, :] == (45, 15, 5)))
 
 
 class test_calc_posres_forces(unittest.TestCase):
@@ -81,9 +97,6 @@ class test_calc_posres_forces(unittest.TestCase):
         forces = force_analysis.calc_posres_forces(traj_coords, ref_coords, 10)
         self.assertSequenceEqual(forces.shape, (2, 10, 1))
         self.assertEqual(forces[0, 0, 0], 40)
-
-    def test_simple_scaling(self):
-        pass
 
 
 if __name__ == '__main__':

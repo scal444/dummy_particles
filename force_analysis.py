@@ -6,18 +6,27 @@ import file_io
 
 def scale_box_coordinates(traj_xyz, traj_dims, ref_dims):
     '''
+        Scales a coordinate set in 3 dimensions according to changing box size. The scaling is by the fractional size
+        of the trajectory box compared to a static reference box dimension. The trajectory, box dimensions, and
+        reference dimensions all need to be 3D.
 
+        Parameters
+            -traj_xyz    - n_frames * n_particles * 3 array of coordinates
+            -traj_dims   - n_frames * 3               array of box dimensions
+            -ref_dims    - size 3 array of box dimensions
+
+        Returns
+            -scaled_xyz  - scaled coordinates same size as traj_xyz
     '''
 
     # make sure back dims match up
-    ndims = ref_dims.size
-    if not traj_dims[-ndims:].shape == ref_dims.shape:
-        raise ValueError("Mismatch between reference and trajectory dims. Last n dimensions of traj_dims must match")
+    if traj_xyz.shape[2] != 3 or traj_dims.shape[1] != 3 or ref_dims.shape != (3,):
+        raise ValueError("One of the inputs does not have 3 as it's final dimension size")
+    if traj_xyz.shape[0] != traj_dims.shape[0]:
+        raise ValueError("trajectory coords/dims have different frame counts: {} vs {}".format(traj_xyz.shape[0], traj_dims.shape[0]))  # noqa
 
-    scaled_coords = traj_xyz
     scale_factor = traj_dims / ref_dims
-    for i in range(scale_factor.shape[0]):
-        scaled_coords[i, :, :] *= scale_factor[i, :]
+    return traj_xyz * scale_factor[:, np.newaxis, :]
 
 
 def calc_posres_forces(traj_xyz, ref_xyz, spring_constant, scaling=False, traj_dims=None, ref_dims=None):
