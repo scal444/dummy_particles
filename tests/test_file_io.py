@@ -46,3 +46,7 @@ class test_load_xvg(unittest.TestCase):
 
     def test_xvg_column_mismatch_error(self):
         self.assertRaises(ValueError, file_io.load_xvg, 'files/testFileIO/data_1D.xvg', dims=3)
+
+
+if __name__ == '__main__':
+    unittest.main()
