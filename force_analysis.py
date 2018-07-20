@@ -85,7 +85,7 @@ def scale_box_coordinates(traj_xyz, traj_dims, ref_dims):
     return traj_xyz * scale_factor[:, np.newaxis, :]
 
 
-def calc_posres_forces(traj_xyz, ref_xyz, spring_constant):
+def calc_posres_forces(displacements, spring_constant):
     '''
         Calculates the average force acting on a dummy particle kept in place using position restraints. This is done
         by calculating the displacement of the bead from its equilibrium value and using the spring constant force
@@ -95,25 +95,13 @@ def calc_posres_forces(traj_xyz, ref_xyz, spring_constant):
             F = -kX   (kX to keep a particle at a specific distance from reference)
 
         Parameters
-            -traj_xyz        - n_frames * n_particles * xyz array of coordinates (actual coordinates)
-            -ref_xyz         - n_frames * n_particles * xyz array of coordinates (position restraint reference coords)
+            -displacements   - n_frames * n_particles * xyz
             -spring constant - force constant that keeps dummy particles in place. Gromacs units are k=kJ/(mol nm^2)
 
         Returns
             - forces         - n_frames * n_particles * xyz - dimensional components of forces
     '''
-
-    # check dimensions of inputs
-    trajshape, refshape = traj_xyz.shape, ref_xyz.shape
-    if len(trajshape) < 3 or len(refshape) < 3:
-        raise ValueError("Dimension mismatch. traj_xyz and ref_xyz must be mdtraj format xyz arrays, of dimensions" +
-                         "n_frames * n_particles * dims, even if there is only one frame/particle/dimension")
-
-    if  trajshape != refshape:
-        raise ValueError("Dimension mismatch between traj_xyz and ref_xyz - {} to {}".format(trajshape, refshape ))
-
-    dists = traj_xyz - ref_xyz
-    return  spring_constant * dists
+    return  spring_constant * displacements
 
 
 if __name__ == '__main__':
