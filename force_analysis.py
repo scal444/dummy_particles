@@ -1,7 +1,45 @@
 import mdtraj as md
 import numpy as np
-import matplotlib.pyplot as plt
 import file_io
+
+
+def calc_vectors(p_origin, p_destination, boxdims):
+    """
+        MDtraj has functionality for computing distances but it's not always applicable to every dataset, and distances
+        contain no directonality. This function will calculate vectors for 3D coordinates, taking into account the box
+        dimensions. For simplicity, will only take in mdtraj xyz shaped arrays (and trajectory.unitcell_lengths)
+
+        Parameters
+            p_origin      - nframes * n_particles * 3 (dimensions) coordinate array
+            p_destination - nframes * n_particles * 3 (dimensions) coordinate array - same size as p_origin
+            boxdims       - nframes * 3 array of box dimensions
+        WRITE TESTS FOR THIS
+    """
+
+    if not p_origin.shape == p_destination.shape:
+        pass  # error
+    if not p_origin.shape[0] == boxdims.shape[0]:  # mismatch between number of frames in coords and boxdims
+        pass
+
+    boxdims_reshaped = boxdims[:, np.newaxis, :]  # allows broadcasting
+    boxdims_midpoint = boxdims_reshaped / 2
+    vecs = p_destination - p_origin
+    veclengths = np.abs(vecs)
+
+    # these are the vectors who's periodic image are closer than the original vecotor
+    vecs_gt_boxdims = veclengths >  (boxdims_midpoint)  # these positions will be changed
+
+    # boolean arrays for identifying closest periodic image
+    origins_near_next_pi = p_origin > (boxdims_midpoint)
+    origins_near_prev_pi = p_origin < (boxdims_midpoint)
+
+    # for origins > boxdims / 2, use next periodic image
+    vecs[vecs_gt_boxdims & origins_near_next_pi] = (boxdims_reshaped - veclengths)[vecs_gt_boxdims & origins_near_next_pi]  # noqa
+
+    # for origins < boxdims / 2, use previous image. No need to have an == boxdims / 2 - original vec is correct
+    vecs[vecs_gt_boxdims & origins_near_prev_pi] = -(boxdims_reshaped - veclengths)[vecs_gt_boxdims & origins_near_prev_pi]  # noqa
+
+    return vecs
 
 
 def multiply_coordinate_frame(ref_xyz, n_frames):
