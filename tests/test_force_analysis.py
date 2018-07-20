@@ -85,26 +85,14 @@ class test_calc_vectors(unittest.TestCase):
 
 class test_calc_posres_forces(unittest.TestCase):
 
-    def test_shape_error(self):
-        bad_coords = np.zeros((1, 15))
-        good_coords = np.zeros((1, 15, 1))
-        self.assertRaises(ValueError, force_analysis.calc_posres_forces, good_coords, bad_coords, 10)
-        self.assertRaises(ValueError, force_analysis.calc_posres_forces, bad_coords, good_coords, 10)
-
-    def test_dimension_mismatch_error(self):
-        traj_coords = np.zeros((10, 100, 3))
-        ref_coords  = np.zeros((10, 100, 2))
-        self.assertRaises(ValueError, force_analysis.calc_posres_forces, traj_coords, ref_coords, 10)
-
     def test_spring_constant_calculation(self):
-        traj_coords     = np.zeros((2, 10, 1)) + 5   # all set to 5
-        traj_coords_neg = np.zeros((2, 10, 1)) - 3
-        ref_coords =  np.ones((2, 10, 1))         # all set to 1
-        forces     = force_analysis.calc_posres_forces(traj_coords,     ref_coords, 10)
-        forces_neg = force_analysis.calc_posres_forces(traj_coords_neg, ref_coords, 10)
-        self.assertSequenceEqual(forces.shape, (2, 10, 1))
-        self.assertEqual(forces[0, 0, 0],      40)
-        self.assertEqual(forces_neg[0, 0, 0], -40)
+        positive_displacements = np.zeros((10, 20, 3)) + 3.33
+        negative_displacements = np.zeros((4,  18, 3)) - 3
+        forces     = force_analysis.calc_posres_forces(positive_displacements, 10)
+        forces_neg = force_analysis.calc_posres_forces(negative_displacements, 10)
+        self.assertSequenceEqual(negative_displacements.shape, (4, 18, 3))
+        self.assertAlmostEqual(forces[0, 0, 0], 33.3)
+        self.assertEqual(forces_neg[3, 10, 2], -30)
 
 
 if __name__ == '__main__':
