@@ -1,4 +1,3 @@
-import unittest
 import mdtraj as md
 import numpy as np
 import sys
